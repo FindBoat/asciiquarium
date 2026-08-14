@@ -39,7 +39,14 @@ Usage
 -----
 
 Command line arguments:
-	-c	"classic" mode, only show species from Asciiquarium 1.0
+	-b, --background COLOR	set the background to black or white
+	-c, --classic		"classic" mode, only show species from Asciiquarium 1.0
+	-h, --help		show command line help
+
+The default background is black. To use a white background with a darker
+foreground palette, run:
+
+	asciiquarium --background white
 
 While running:
 	q	quit

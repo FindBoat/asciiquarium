@@ -2,4 +2,5 @@ CHANGES
 MANIFEST
 README
 asciiquarium
+t/options.t
 gpl.txt

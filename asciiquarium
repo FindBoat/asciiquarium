@@ -48,18 +48,35 @@ use Term::Animation 2.0;
 use Term::Animation::Entity;
 use Data::Dumper;
 use Curses;
-use Getopt::Std;
+use Getopt::Long;
 use strict;
 use warnings;
 
-my $version = "1.1";
+my $version = "1.2";
 my $new_fish = 1;
 my $new_monster = 1;
+my $background = 'black';
+my $classic;
+my $help;
 
-our $opt_c;
-getopts('c');
+GetOptions(
+	'background|b=s' => \$background,
+	'classic|c'      => \$classic,
+	'help|h'         => \$help,
+) or usage(2);
 
-if ($opt_c) {			# 'classic' mode
+usage(0) if $help;
+$background = lc($background);
+if($background ne 'black' && $background ne 'white') {
+	print STDERR "Invalid background '$background'.\n";
+	usage(2);
+}
+if(@ARGV) {
+	print STDERR "Unexpected argument '$ARGV[0]'.\n";
+	usage(2);
+}
+
+if ($classic) {			# 'classic' mode
 	$new_fish = 0;
 	$new_monster = 0;
 }
@@ -97,12 +114,12 @@ main();
 sub main {
 
 	my $anim = Term::Animation->new();
+	$anim->color(1);
+	$anim->background($background);
 
 	# set the wait time for getch
 	halfdelay(1);
 	#nodelay(1);
-
-	$anim->color(1);
 
 	my $start_time = time;
 	my $paused = 0;
@@ -152,7 +169,7 @@ sub add_environment {
 	}
 
 	foreach my $i (0..$#water_line_segment) {
-		$anim->new_entity(
+		add_entity($anim,
 			name		=> "water_seg_$i",
 			type		=> "waterline",
 			shape		=> $water_line_segment[$i],
@@ -198,7 +215,7 @@ sub add_castle {
             yyyyyyy
 };
 
-	$anim->new_entity(
+	add_entity($anim,
 		name		=> "castle",
 		shape		=> $castle_image,
 		color		=> $castle_mask,
@@ -229,7 +246,7 @@ sub add_seaweed {
 	my $x = int(rand($anim->width()-2)) + 1;
 	my $y = $anim->height() - $height;
 	my $anim_speed = rand(.05) + .25;
-	$anim->new_entity(
+	add_entity($anim,
 		name		=> 'seaweed' . rand(1),
 		shape		=> \@seaweed_image,
 		position	=> [ $x, $y, $depth{'seaweed'} ],
@@ -257,7 +274,7 @@ sub add_bubble {
 	# bubble always goes on top of the fish
 	$bubble_pos[2]--;
 
-	$anim->new_entity(
+	add_entity($anim,
 		shape		=> [ '.', 'o', 'O', 'O', 'O' ],
 		type		=> 'bubble',
 		position	=> \@bubble_pos,
@@ -678,7 +695,7 @@ sub add_fish_entity {
 	if($fish_num % 2) {
 		$speed *= -1;
 	}
-	my $fish_object = Term::Animation::Entity->new(
+	my $fish_object = make_entity(
 		type		=> 'fish',
 		shape		=> $fish_image[$fish_index],
 		auto_trans	=> 1,
@@ -755,7 +772,7 @@ q#
 #,
 );
 
-	$anim->new_entity(
+	add_entity($anim,
 		shape		=> \@splat_image,
 		position	=> [ $x - 4, $y - 2, $z-2 ],
 		default_color	=> 'RED',
@@ -834,7 +851,7 @@ q#
 		$teeth_x = $x + 9;
 	}
 
-	$anim->new_entity(
+	add_entity($anim,
 		type		=> 'teeth',
 		shape		=> "*",
 		position	=> [ $teeth_x, $teeth_y, $depth{'shark'}+1 ],
@@ -843,7 +860,7 @@ q#
 		physical	=> 1,
 	);
 
-	$anim->new_entity(
+	add_entity($anim,
 		type		=> "shark",
 		color		=> $shark_mask[$dir],
 		shape		=> $shark_image[$dir],
@@ -916,7 +933,7 @@ yywwwyyyyyyyyyyyyyyyyyyyy
 		$x = $anim->width()-2;
 	}
 
-	$anim->new_entity(
+	add_entity($anim,
 		color		=> $ship_mask[$dir],
 		shape		=> $ship_image[$dir],
 		auto_trans	=> 1,
@@ -1028,7 +1045,7 @@ q{
 		push(@whale_anim_mask, $whale_mask[$dir]);
 	}
 
-	$anim->new_entity(
+	add_entity($anim,
 		color		=> \@whale_anim_mask,
 		shape		=> \@whale_anim,
 		auto_trans	=> 1,
@@ -1105,7 +1122,7 @@ q{                                                W W
 	my @monster_anim_mask;
 	for(1..2) { push(@monster_anim_mask, $monster_mask[$dir]); }
 
-	$anim->new_entity(
+	add_entity($anim,
 		shape		=> $monster_image[$dir],
 		auto_trans	=> 1,
 		color		=> \@monster_anim_mask,
@@ -1200,7 +1217,7 @@ q{
 	my @monster_anim_mask;
 	for(1..4) { push(@monster_anim_mask, $monster_mask[$dir]); }
 
-	$anim->new_entity(
+	add_entity($anim,
 		shape		=> $monster_image[$dir],
 		auto_trans	=> 1,
 		color		=> \@monster_anim_mask,
@@ -1309,7 +1326,7 @@ q{
 	my $min_height = $anim->height() - 15;
 	my $y = int(rand($min_height - $max_height)) + $max_height;
 	my $color_mask = rand_color($big_fish_mask[$dir]);
-	$anim->new_entity(
+	add_entity($anim,
 		shape		=> $big_fish_image[$dir],
 		auto_trans	=> 1,
 		color		=> $color_mask,
@@ -1400,7 +1417,7 @@ q{
 	my $min_height = $anim->height() - 14;
 	my $y = int(rand($min_height - $max_height)) + $max_height;
 	my $color_mask = rand_color($big_fish_mask[$dir]);
-	$anim->new_entity(
+	add_entity($anim,
 		shape		=> $big_fish_image[$dir],
 		auto_trans	=> 1,
 		color		=> $color_mask,
@@ -1476,6 +1493,40 @@ sub center {
 	}
 }
 
+sub add_entity {
+	my $anim = shift;
+	return $anim->new_entity(theme_args(@_));
+}
+
+sub make_entity {
+	return Term::Animation::Entity->new(theme_args(@_));
+}
+
+sub theme_args {
+	my %args = @_;
+	$args{'color'} = theme_mask($args{'color'}) if exists($args{'color'});
+	$args{'default_color'} = theme_color($args{'default_color'}) if exists($args{'default_color'});
+	return %args;
+}
+
+sub theme_color {
+	my ($color) = @_;
+	return $color if $background eq 'black';
+
+	$color = lc($color);
+	return $color eq 'white' || $color eq 'w' ? 'black' : $color;
+}
+
+sub theme_mask {
+	my ($mask) = @_;
+	return $mask if $background eq 'black';
+	return [ map { theme_mask($_) } @{$mask} ] if ref($mask) eq 'ARRAY';
+
+	$mask =~ tr/WCRYBGMK/wcrybgmk/;
+	$mask =~ tr/w/k/;
+	return $mask;
+}
+
 sub rand_color {
 	my ($color_mask) = @_;
 	my @colors = ('c','C','r','R','y','Y','b','B','g','G','m','M');
@@ -1484,6 +1535,18 @@ sub rand_color {
 		$color_mask =~ s/$i/$color/gm;
 	}
 	return $color_mask;
+}
+
+sub usage {
+	my ($status) = @_;
+	my $output = $status ? \*STDERR : \*STDOUT;
+	print {$output} <<"USAGE";
+Usage: asciiquarium [options]
+  -b, --background COLOR  Set the background to black or white (default: black)
+  -c, --classic           Only show species from Asciiquarium 1.0
+  -h, --help              Show this help
+USAGE
+	exit($status);
 }
 
 sub VERSION_MESSAGE {

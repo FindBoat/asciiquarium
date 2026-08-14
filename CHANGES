@@ -1,5 +1,9 @@
 Changes for Asciiquarium
 
+Version 1.2
+	- Add black and white background themes
+	- Add long command-line options and help
+
 Version 1.1
 	- Add new fish species
 
