@@ -52,7 +52,7 @@ use Getopt::Long;
 use strict;
 use warnings;
 
-my $version = "1.2.1";
+my $version = "1.3";
 my $new_fish = 1;
 my $new_monster = 1;
 my $background = 'black';
@@ -67,7 +67,8 @@ GetOptions(
 
 usage(0) if $help;
 $background = lc($background);
-if($background ne 'black' && $background ne 'white') {
+$background = 'default' if $background eq 'transparent';
+if($background ne 'black' && $background ne 'white' && $background ne 'default') {
 	print STDERR "Invalid background '$background'.\n";
 	usage(2);
 }
@@ -153,13 +154,28 @@ sub main {
 sub configure_palette {
 	my ($anim) = @_;
 	$anim->color(1);
+	if($background eq 'default') {
+		return if use_default_colors() != 0;
+		# Use terminal defaults for neutral foregrounds and the background.
+		my @foregrounds = (
+			-1, Curses::COLOR_RED(), Curses::COLOR_GREEN(), Curses::COLOR_BLUE(),
+			Curses::COLOR_CYAN(), Curses::COLOR_MAGENTA(), Curses::COLOR_YELLOW(), -1,
+		);
+		set_palette(-1, @foregrounds);
+		return;
+	}
+
 	$anim->background($background);
 	return unless $background eq 'white' && $COLORS >= 256;
 
 	# Use fixed xterm-256 colors instead of terminal-defined ANSI colors.
-	my @foregrounds = (16, 124, 22, 19, 30, 90, 94, 16);
+	set_palette(231, 16, 124, 22, 19, 30, 90, 94, 16);
+}
+
+sub set_palette {
+	my ($background_color, @foregrounds) = @_;
 	for my $index (0..$#foregrounds) {
-		init_pair($index + 1, $foregrounds[$index], 231);
+		init_pair($index + 1, $foregrounds[$index], $background_color);
 	}
 }
 
@@ -1523,7 +1539,7 @@ sub theme_args {
 
 sub theme_color {
 	my ($color) = @_;
-	return $color if $background eq 'black';
+	return $color unless $background eq 'white';
 
 	$color = lc($color);
 	return $color eq 'white' || $color eq 'w' ? 'black' : $color;
@@ -1531,7 +1547,7 @@ sub theme_color {
 
 sub theme_mask {
 	my ($mask) = @_;
-	return $mask if $background eq 'black';
+	return $mask unless $background eq 'white';
 	return [ map { theme_mask($_) } @{$mask} ] if ref($mask) eq 'ARRAY';
 
 	$mask =~ tr/WCRYBGMK/wcrybgmk/;
@@ -1554,7 +1570,7 @@ sub usage {
 	my $output = $status ? \*STDERR : \*STDOUT;
 	print {$output} <<"USAGE";
 Usage: asciiquarium [options]
-  -b, --background COLOR  Set the background to black or white (default: black)
+  -b, --background COLOR  Set black, white, or default/transparent background
   -c, --classic           Only show species from Asciiquarium 1.0
   -h, --help              Show this help
 USAGE

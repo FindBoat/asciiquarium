@@ -23,6 +23,7 @@ sub run_asciiquarium {
 my ($status, $output, $error) = run_asciiquarium('--help');
 is($status, 0, 'help exits successfully');
 like($output, qr/--background COLOR/, 'help documents the background option');
+like($output, qr/default\/transparent/, 'help documents terminal-default backgrounds');
 is($error, '', 'help does not write to stderr');
 
 ($status, $output, $error) = run_asciiquarium('--background', 'blue');

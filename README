@@ -39,7 +39,7 @@ Usage
 -----
 
 Command line arguments:
-	-b, --background COLOR	set the background to black or white
+	-b, --background COLOR	set a black, white, or default/transparent background
 	-c, --classic		"classic" mode, only show species from Asciiquarium 1.0
 	-h, --help		show command line help
 
@@ -47,6 +47,12 @@ The default background is black. To use a true-white background with a darker
 high-contrast foreground palette, run:
 
 	asciiquarium --background white
+
+To use the terminal's configured background color or transparency, run:
+
+	asciiquarium --background default
+
+`transparent` is accepted as an alias for `default`.
 
 While running:
 	q	quit

@@ -1,5 +1,8 @@
 Changes for Asciiquarium
 
+Version 1.3
+	- Add terminal-default and transparent background modes
+
 Version 1.2.1
 	- Use a true-white, high-contrast 256-color palette when available
 
