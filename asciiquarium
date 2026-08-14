@@ -52,7 +52,7 @@ use Getopt::Long;
 use strict;
 use warnings;
 
-my $version = "1.2";
+my $version = "1.2.1";
 my $new_fish = 1;
 my $new_monster = 1;
 my $background = 'black';
@@ -114,8 +114,7 @@ main();
 sub main {
 
 	my $anim = Term::Animation->new();
-	$anim->color(1);
-	$anim->background($background);
+	configure_palette($anim);
 
 	# set the wait time for getch
 	halfdelay(1);
@@ -149,6 +148,19 @@ sub main {
 
 	}
 
+}
+
+sub configure_palette {
+	my ($anim) = @_;
+	$anim->color(1);
+	$anim->background($background);
+	return unless $background eq 'white' && $COLORS >= 256;
+
+	# Use fixed xterm-256 colors instead of terminal-defined ANSI colors.
+	my @foregrounds = (16, 124, 22, 19, 30, 90, 94, 16);
+	for my $index (0..$#foregrounds) {
+		init_pair($index + 1, $foregrounds[$index], 231);
+	}
 }
 
 sub add_environment {

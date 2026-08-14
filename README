@@ -43,8 +43,8 @@ Command line arguments:
 	-c, --classic		"classic" mode, only show species from Asciiquarium 1.0
 	-h, --help		show command line help
 
-The default background is black. To use a white background with a darker
-foreground palette, run:
+The default background is black. To use a true-white background with a darker
+high-contrast foreground palette, run:
 
 	asciiquarium --background white
 

@@ -1,5 +1,8 @@
 Changes for Asciiquarium
 
+Version 1.2.1
+	- Use a true-white, high-contrast 256-color palette when available
+
 Version 1.2
 	- Add black and white background themes
 	- Add long command-line options and help
